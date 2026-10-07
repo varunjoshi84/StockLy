@@ -26,8 +26,10 @@ const executeResearch = async (req, res) => {
         const researchReport = await Research.create({
             userId: req.user ? req.user.id : null,
             guestId: req.user ? null : (guestId || null),
-            companyName: agentResult.companyName || message,
+            companyName: agentResult.resolvedCompanyName || agentResult.companyName || message,
             ticker: agentResult.ticker || "UNKNOWN",
+            listingStatus: agentResult.listingStatus || "UNKNOWN",
+            marketSignal: agentResult.marketSignal || {},
             financials: agentResult.financials || {},
             news: agentResult.news || [],
             priceHistory: agentResult.priceHistory || {},

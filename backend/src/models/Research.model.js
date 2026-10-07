@@ -18,6 +18,15 @@ const ResearchSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    listingStatus: {
+        type: String,
+        enum: ['LISTED', 'UNLISTED', 'UNKNOWN'],
+        default: 'UNKNOWN'
+    },
+    marketSignal: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    },
     financials: {
         type: mongoose.Schema.Types.Mixed,
         default: {}
@@ -45,6 +54,8 @@ const ResearchSchema = new mongoose.Schema({
     },
     confidenceScore: {
         type: Number,
+        min: 1,
+        max: 10,
         default: 5
     },
     createdAt: {

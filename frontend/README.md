@@ -1,16 +1,31 @@
-# React + Vite
+# Stockly frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Stockly's responsive research desk is built with React, TypeScript, and Vite. It includes public landing, features, and workflow pages, plus the existing dashboard, authentication, research history, charts, and memo view.
 
-Currently, two official plugins are available:
+## Routes
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `/` — public landing page
+- `/features` — feature overview
+- `/how-it-works` — research workflow
+- `/dashboard` — company search, market data, charts, reports, and saved history
+- `/login` and `/register` — authentication
 
-## React Compiler
+## Local development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Start the backend on port `5000`, then run:
 
-## Expanding the ESLint configuration
+```bash
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The Vite development server proxies `/api` requests to `http://localhost:5000` so local browser requests avoid CORS errors. If the backend uses another address, set `VITE_DEV_API_TARGET` in `.env.local`.
+
+## Type checking and production build
+
+```bash
+npx tsc --noEmit
+npm run build
+```
+
+The report view renders memo headings and lists, separates metadata into cards, and cleans common escaped LaTeX price-path notation for readability.

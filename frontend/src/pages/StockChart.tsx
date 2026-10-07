@@ -1,4 +1,6 @@
-import React, { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+import type { Plugin, ChartOptions, Chart as ChartInstance } from 'chart.js';
+import type { PriceHistory, PricePoint } from '../types';
 import {
   Chart as ChartJS,
   LineElement,
@@ -12,7 +14,7 @@ import { Line } from 'react-chartjs-2';
 
 ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Filler);
 
-const PERIODS = ['1D', '1W', '1M', '3M', '6M', '1Y', '3Y', '5Y', 'All'];
+const PERIODS = ['1D', '1W', '1M', '3M', '6M', '1Y', '3Y', '5Y', 'All'] as const;
 
 const GREEN = '#00C853';
 const RED = '#EF4444';
@@ -21,7 +23,7 @@ const RED = '#EF4444';
  * Draws the Groww-style crosshair: a vertical line + a ring marker
  * at whichever point is currently hovered/active.
  */
-const crosshairPlugin = {
+const crosshairPlugin: Plugin<'line'> = {
   id: 'crosshair',
   afterDatasetsDraw(chart) {
     const active = chart.getActiveElements();
@@ -43,7 +45,7 @@ const crosshairPlugin = {
     ctx.fillStyle = '#ffffff';
     ctx.fill();
     ctx.lineWidth = 2;
-    ctx.strokeStyle = chart.data.datasets[0].borderColor;
+    ctx.strokeStyle = typeof chart.data.datasets[0].borderColor === 'string' ? chart.data.datasets[0].borderColor : GREEN;
     ctx.stroke();
     ctx.restore();
   },
@@ -53,12 +55,14 @@ const crosshairPlugin = {
  * Reference dashed baseline at the first price of the visible range,
  * matching the faint horizontal guide line Groww shows.
  */
-const baselinePlugin = {
+const baselinePlugin: Plugin<'line'> = {
   id: 'baseline',
   beforeDatasetsDraw(chart) {
     const data = chart.data.datasets[0]?.data;
     if (!data || !data.length) return;
-    const y = chart.scales.y.getPixelForValue(data[0]);
+    const firstPrice = Number(data[0]);
+    if (!Number.isFinite(firstPrice)) return;
+    const y = chart.scales.y.getPixelForValue(firstPrice);
     const { left, right } = chart.chartArea;
 
     const { ctx } = chart;
@@ -84,6 +88,15 @@ const baselinePlugin = {
  * }
  * Each array should be pre-sorted oldest -> newest.
  */
+interface StockChartProps {
+  companyName: string;
+  ticker: string;
+  exchange?: string;
+  history?: PriceHistory | null;
+  loading?: boolean;
+  currency?: string;
+}
+
 export default function StockChart({
   companyName,
   ticker,
@@ -91,8 +104,8 @@ export default function StockChart({
   history,
   loading = false,
   currency,
-}) {
-  const chartRef = useRef(null);
+}: StockChartProps) {
+  const chartRef = useRef<ChartInstance<'line'> | null>(null);
 
   const isINR = currency === 'INR' || exchange === 'NSE' || exchange === 'BSE' || exchange === 'NSI' || ticker?.endsWith('.NS') || ticker?.endsWith('.BO');
   const currencySymbol = isINR ? '₹' : (currency === 'USD' ? '$' : currency || '$');
@@ -101,8 +114,8 @@ export default function StockChart({
   const defaultPeriod =
     (availablePeriods.includes('3Y') && '3Y') || availablePeriods[0] || '1D';
 
-  const [period, setPeriod] = useState(defaultPeriod);
-  const [hover, setHover] = useState(null);
+  const [period, setPeriod] = useState<(typeof PERIODS)[number]>(defaultPeriod);
+  const [hover, setHover] = useState<PricePoint | null>(null);
 
   const data = history?.[period] || [];
 
@@ -110,7 +123,7 @@ export default function StockChart({
   const startPrice = data.length ? data[0].price : null;
   const change =
     latestPrice != null && startPrice != null ? latestPrice - startPrice : null;
-  const changePercent = startPrice ? (change / startPrice) * 100 : null;
+  const changePercent = startPrice && change !== null ? (change / startPrice) * 100 : null;
   const isUp = (change ?? 0) >= 0;
   const lineColor = isUp ? GREEN : RED;
 
@@ -135,7 +148,7 @@ export default function StockChart({
     [data, lineColor]
   );
 
-  const options = useMemo(
+  const options = useMemo<ChartOptions<'line'>>(
     () => ({
       responsive: true,
       maintainAspectRatio: false,
@@ -151,7 +164,7 @@ export default function StockChart({
               setHover(null);
               return;
             }
-            setHover({ price: point.raw, date: point.label });
+            setHover({ price: Number(point.raw), date: String(point.label) });
           },
         },
       },
@@ -167,23 +180,23 @@ export default function StockChart({
   );
 
   return (
-    <div className="bg-white rounded-2xl border border-[#E5E7EB] shadow-[0_1px_3px_rgba(0,0,0,0.05)] p-6">
+    <div className="bg-white rounded-2xl border border-[#dce6e2] shadow-[0_8px_28px_rgba(16,43,53,0.05)] p-6">
       {/* Header */}
-      <span className="text-xs text-[#6B7280] font-bold tracking-wider">
+      <span className="inline-flex rounded-md bg-[#edf8f1] px-2 py-1 text-[10px] text-[#087a4f] font-extrabold tracking-wider">
         {ticker} · {exchange}
       </span>
       <h2 className="text-lg font-bold text-[#111827] mt-1 mb-2">{companyName}</h2>
 
       <div className="flex items-baseline gap-2 flex-wrap">
-        <span className="text-2xl font-bold text-[#111827] tracking-tight">
+        <span className="text-2xl font-bold text-[#102b35] tracking-tight">
           {displayPrice != null
             ? `${currencySymbol}${displayPrice.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
             : '--'}
         </span>
-        {!hover && change != null && (
+        {!hover && change != null && changePercent != null && (
           <span
             className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-              isUp ? 'bg-[#00C853]/10 text-[#00C853] border border-[#00C853]/20' : 'bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20'
+              isUp ? 'bg-[#e5f7ee] text-[#087a4f] border border-[#c8e9d6]' : 'bg-[#fff0ed] text-[#bc4935] border border-[#f4d5cf]'
             }`}
           >
             {isUp ? '+' : ''}
@@ -217,7 +230,7 @@ export default function StockChart({
       </div>
 
       {/* Period selector */}
-      <div className="flex flex-wrap gap-1.5 mt-5 pt-4 border-t border-[#E5E7EB]">
+      <div className="flex flex-wrap gap-1.5 mt-5 pt-4 border-t border-[#e5eee9]">
         {PERIODS.map((p) => {
           const disabled = !history?.[p]?.length;
           const active = period === p;
@@ -233,10 +246,10 @@ export default function StockChart({
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer
                 ${
                   active
-                    ? 'bg-[#111827] text-white border-[#111827] shadow-sm shadow-[#111827]/5'
+                    ? 'bg-[#087a4f] text-white border-[#087a4f] shadow-sm shadow-[#087a4f]/15'
                     : disabled
                     ? 'border-[#E5E7EB] text-[#E5E7EB] opacity-40 cursor-not-allowed'
-                    : 'border-[#E5E7EB] text-[#6B7280] bg-white hover:bg-[#F3F4F6] hover:text-[#111827]'
+                    : 'border-[#dce6e2] text-[#71847d] bg-white hover:bg-[#edf8f1] hover:text-[#087a4f]'
                 }`}
             >
               {p}

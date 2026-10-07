@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios'
 import { TrendingUp } from 'lucide-react';
@@ -12,7 +13,7 @@ function Register() {
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate()
 
-    const RegisterHandler = async function (e) {
+    const RegisterHandler = async function (e: FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setLoading(true);
         setMessage("");
@@ -24,29 +25,32 @@ function Register() {
             if (response.data.token) {
                 localStorage.setItem("token", response.data.token);
             }
-            navigate("/");
-        } catch (err) {
+            navigate("/dashboard");
+        } catch (err: unknown) {
             console.log(err);
-            setMessage(err.response?.data?.message || "something went wrong")
+            setMessage(axios.isAxiosError(err) ? err.response?.data?.message || "something went wrong" : "something went wrong")
         } finally {
             setLoading(false);
         }
     }
 
     return (
-        <div className="min-h-screen w-full bg-[#F8FAFC] flex items-center justify-center px-4 font-sans">
-            <div className="w-full max-w-[380px] bg-white rounded-2xl border border-[#E5E7EB] p-8 shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+        <div className="relative isolate min-h-screen w-full overflow-hidden bg-[#f3f7f5] flex items-center justify-center px-4 py-10 font-sans">
+            <div className="absolute -left-20 -top-20 h-80 w-80 rounded-full bg-[#00a96b]/[.08] blur-3xl" />
+            <div className="absolute -bottom-28 -right-16 h-96 w-96 rounded-full bg-[#eabf61]/[.10] blur-3xl" />
+            <div className="relative z-10 w-full max-w-[410px] overflow-hidden rounded-2xl border border-white/80 bg-white p-8 shadow-[0_24px_80px_rgba(16,43,53,0.15)] sm:p-10">
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#087a4f] via-[#82c99e] to-[#e9c16f]" />
                 
                 {/* Logo / mark */}
                 <div className="flex flex-col items-center gap-2 mb-6">
-                    <div className="w-10 h-10 rounded-xl bg-[#00C853]/10 flex items-center justify-center">
-                        <TrendingUp className="w-5.5 h-5.5 text-[#00C853]" strokeWidth={2.5} />
+                    <div className="w-11 h-11 rounded-xl bg-[#102b35] flex items-center justify-center shadow-lg shadow-[#102b35]/15">
+                        <TrendingUp className="w-5.5 h-5.5 text-[#c5f36a]" strokeWidth={2.5} />
                     </div>
                     <span className="text-[#111827] text-xl font-bold tracking-tight">Stockly</span>
                 </div>
 
-                <h1 className="text-[#111827] text-lg font-bold mb-1 text-center">Create account</h1>
-                <p className="text-[#6B7280] text-xs mb-6 text-center font-medium">Start tracking your portfolio in minutes.</p>
+                <div className="mb-6 text-center"><span className="rounded-full bg-[#e5f7ee] px-3 py-1 text-[10px] font-extrabold tracking-[.15em] text-[#087a4f]">JOIN STOCKLY</span><h1 className="mt-4 text-[#102b35] text-2xl font-bold mb-1 text-center">Create your account</h1>
+                <p className="text-[#6B7F78] text-sm mt-2 text-center">Save reports and build a personal research history.</p></div>
 
                 <form onSubmit={RegisterHandler} className="flex flex-col gap-4">
                     <div className="flex flex-col gap-1.5">
@@ -60,9 +64,9 @@ function Register() {
                             placeholder="Your full name"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="h-10 px-3 rounded-lg border border-[#E5E7EB] text-sm text-[#111827]
-                                       outline-none focus:border-[#111827] focus:ring-1 focus:ring-[#111827]/5
-                                       transition-all placeholder:text-[#6B7280] bg-white"
+                            className="h-11 px-3.5 rounded-lg border border-[#dce6e2] text-sm text-[#102b35]
+                                       outline-none focus:border-[#00a96b] focus:ring-2 focus:ring-[#00a96b]/10
+                                       transition-all placeholder:text-[#879891] bg-[#fbfdfc]"
                             required
                         />
                     </div>
@@ -78,9 +82,9 @@ function Register() {
                             placeholder="you@example.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="h-10 px-3 rounded-lg border border-[#E5E7EB] text-sm text-[#111827]
-                                       outline-none focus:border-[#111827] focus:ring-1 focus:ring-[#111827]/5
-                                       transition-all placeholder:text-[#6B7280] bg-white"
+                            className="h-11 px-3.5 rounded-lg border border-[#dce6e2] text-sm text-[#102b35]
+                                       outline-none focus:border-[#00a96b] focus:ring-2 focus:ring-[#00a96b]/10
+                                       transition-all placeholder:text-[#879891] bg-[#fbfdfc]"
                             required
                         />
                     </div>
@@ -96,9 +100,9 @@ function Register() {
                             placeholder="••••••••"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            className="h-10 px-3 rounded-lg border border-[#E5E7EB] text-sm text-[#111827]
-                                       outline-none focus:border-[#111827] focus:ring-1 focus:ring-[#111827]/5
-                                       transition-all placeholder:text-[#6B7280] bg-white"
+                            className="h-11 px-3.5 rounded-lg border border-[#dce6e2] text-sm text-[#102b35]
+                                       outline-none focus:border-[#00a96b] focus:ring-2 focus:ring-[#00a96b]/10
+                                       transition-all placeholder:text-[#879891] bg-[#fbfdfc]"
                             required
                         />
                     </div>
@@ -106,8 +110,8 @@ function Register() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="h-10 mt-2 rounded-lg bg-[#111827] text-white text-sm font-semibold
-                                   hover:bg-black active:bg-black transition-all duration-150 shadow-sm
+                        className="h-11 mt-2 rounded-lg bg-[#102b35] text-white text-sm font-bold
+                                   hover:bg-[#174653] active:bg-[#174653] transition-all duration-150 shadow-md shadow-[#102b35]/15
                                    disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center"
                     >
                         {loading ? "Creating account..." : "Sign up"}
@@ -120,7 +124,7 @@ function Register() {
                     </p>
                 )}
 
-                <p className="text-center text-xs text-[#6B7280] mt-6 font-medium">
+                <p className="text-center text-xs text-[#6B7F78] mt-6 font-medium">
                     Already registered?{" "}
                     <Link to="/login" className="text-[#111827] font-bold hover:underline transition-colors">
                         Log in
