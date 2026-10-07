@@ -65,6 +65,8 @@ The frontend uses React with TypeScript (`.tsx` and `.ts` files), strict TypeScr
 
 For local development, Vite proxies `/api` requests to `http://localhost:5000` to avoid browser CORS errors. Set `VITE_DEV_API_TARGET` in `frontend/.env.local` when the backend runs at another address.
 
+The root `vercel.json` installs and builds the Vite app from `frontend/` and publishes `frontend/dist`, so the Vercel project can use the repository root as its Root Directory. It also rewrites client-side routes to the SPA entry point.
+
 ## 🧠 How it Works — Approach & Architecture
 
 Stockly implements an autonomous **LangGraph StateGraph** pipeline on the backend to execute the research steps sequentially:
