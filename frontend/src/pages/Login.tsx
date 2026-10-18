@@ -20,9 +20,10 @@ function Login() {
             const response = await axios.post(`${API_BASE_URL}/login`, {
                 email, password
             })
-            setMessage(response.data.message)
-            localStorage.setItem("token", response.data.token);
-            navigate("/dashboard")
+            setMessage(response.data.message);
+            // Token is stored in secure httpOnly cookie; clear any old localStorage token
+            localStorage.removeItem("token");
+            navigate("/dashboard");
         } catch (err: unknown) {
             console.log(err);
             setMessage(axios.isAxiosError(err) ? err.response?.data?.message || "something went wrong" : "something went wrong")

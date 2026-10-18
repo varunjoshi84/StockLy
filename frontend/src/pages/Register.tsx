@@ -22,9 +22,8 @@ function Register() {
                 name, email, password
             });
             setMessage(response.data.message);
-            if (response.data.token) {
-                localStorage.setItem("token", response.data.token);
-            }
+            // Token is stored in secure httpOnly cookie; clear any old localStorage token
+            localStorage.removeItem("token");
             navigate("/dashboard");
         } catch (err: unknown) {
             console.log(err);

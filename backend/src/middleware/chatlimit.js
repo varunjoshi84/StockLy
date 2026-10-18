@@ -3,7 +3,7 @@ const Guest = require("../models/Guest.model.js");
 
 const GuestLimit = async (req, res, next) => {
     const authHeader = req.headers.authorization;
-    const token = authHeader && authHeader.split(" ")[1];
+    const token = req.cookies?.token || (authHeader && authHeader.split(" ")[1]);
 
     if (token) {
         try {

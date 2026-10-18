@@ -25,23 +25,29 @@ export default function Home() {
   const navigate = useNavigate();
   const [user,setUser] = useState("");
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-      fetchHistory(token);
-    }
+    // Clear any legacy localStorage token to prevent XSS exposure
+    localStorage.removeItem("token");
+    checkAuthAndFetchHistory();
   }, []);
 
-  const fetchHistory = async (customToken?: string) => {
-    const token = customToken || localStorage.getItem("token");
-    if (!token) return;
-
+  const checkAuthAndFetchHistory = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/history`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const res = await axios.get(`${API_BASE_URL}/me`, { withCredentials: true });
+      if (res.data.authenticated && res.data.user) {
+        setIsLoggedIn(true);
+        setUser(res.data.user.name);
+        fetchHistory();
+      } else {
+        setIsLoggedIn(false);
+      }
+    } catch {
+      setIsLoggedIn(false);
+    }
+  };
+
+  const fetchHistory = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/history`, { withCredentials: true });
       setHistory(response.data.data || []);
       if (response.data.username) {
         setUser(response.data.username);
@@ -49,7 +55,7 @@ export default function Home() {
     } catch (err: unknown) {
       console.error("Error fetching history:", err);
       if (axios.isAxiosError(err) && err.response?.status === 401) {
-        handleLogout();
+        setIsLoggedIn(false);
       }
     }
   };
@@ -57,15 +63,8 @@ export default function Home() {
   const handleDeleteReport = async (reportId: string) => {
     if (!window.confirm("Are you sure you want to delete this research report?")) return;
 
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
     try {
-      await axios.delete(`${API_BASE_URL}/history/${reportId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      await axios.delete(`${API_BASE_URL}/history/${reportId}`, { withCredentials: true });
       
       // If the deleted report is currently opened, clear it
       if (activeReport?._id === reportId) {
@@ -73,19 +72,26 @@ export default function Home() {
       }
       
       // Refresh the list
-      fetchHistory(token);
+      fetchHistory();
     } catch (err: unknown) {
       console.error("Error deleting report:", err);
       alert(axios.isAxiosError(err) ? err.response?.data?.message || "Failed to delete report." : "Failed to delete report.");
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsLoggedIn(false);
-    setHistory([]);
-    setActiveReport(null);
-    navigate("/");
+  const handleLogout = async () => {
+    try {
+      await axios.post(`${API_BASE_URL}/logout`, {}, { withCredentials: true });
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      localStorage.removeItem("token");
+      setIsLoggedIn(false);
+      setUser("");
+      setHistory([]);
+      setActiveReport(null);
+      navigate("/");
+    }
   };
 
   return (

@@ -73,12 +73,6 @@ export default function Chat({ activeReport, onSearchInitiated, onNewResearchCom
       onSearchInitiated();
     }
 
-    const token = localStorage.getItem("token");
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
     try {
       const response = await axios.post(
         `${API_BASE_URL}/chat`,
@@ -86,7 +80,7 @@ export default function Chat({ activeReport, onSearchInitiated, onNewResearchCom
           message: companyInput,
           guestId,
         },
-        { headers }
+        { withCredentials: true }
       );
 
       setLocalReport(response.data.data as ResearchReport);

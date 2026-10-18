@@ -1,3 +1,8 @@
+import axios from 'axios';
+
+// Ensure all axios requests automatically transmit cookies (withCredentials) across same-origin and cross-site requests
+axios.defaults.withCredentials = true;
+
 // In development, send API calls through Vite so the browser sees same-origin
 // requests and the backend's production-only CORS origin does not block localhost.
 export const API_BASE_URL = import.meta.env.DEV

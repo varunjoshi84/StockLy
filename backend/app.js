@@ -1,12 +1,31 @@
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const app = express();
 
+const allowedOrigins = [
+  process.env.VITE_URL,
+  'https://vrstockly.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+].filter(Boolean);
+
 app.use(cors({
-  origin: process.env.VITE_URL,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (
+      allowedOrigins.includes(origin) ||
+      /^https:\/\/.*\.vercel\.app$/.test(origin) ||
+      process.env.NODE_ENV !== 'production'
+    ) {
+      return callback(null, true);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
 
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
