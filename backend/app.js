@@ -6,23 +6,35 @@ const app = express();
 // Trust reverse proxy (Render load balancer) so secure cookies work properly over HTTPS
 app.set('trust proxy', 1);
 
-const allowedOrigins = [
-  process.env.VITE_URL,
-  'https://vrstockly.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:3000',
-].filter(Boolean);
+const configuredOrigins = (
+  process.env.ALLOWED_ORIGINS ||
+  process.env.FRONTEND_URL ||
+  process.env.VITE_URL ||
+  ''
+)
+  .split(',')
+  .map((url) => url.trim())
+  .filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow requests with no origin (e.g., mobile apps, curl, server-to-server)
     if (!origin) return callback(null, true);
-    if (
-      allowedOrigins.includes(origin) ||
-      /^https:\/\/.*\.vercel\.app$/.test(origin) ||
-      process.env.NODE_ENV !== 'production'
-    ) {
+
+    // In development, automatically allow localhost
+    if (process.env.NODE_ENV !== 'production' && /^http:\/\/localhost(:\d+)?$/.test(origin)) {
       return callback(null, true);
     }
+
+    // If configured in environment variables, validate strictly
+    if (configuredOrigins.length > 0) {
+      if (configuredOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error(`Origin ${origin} not allowed by CORS`));
+    }
+
+    // Fallback: allow request
     return callback(null, true);
   },
   credentials: true,
