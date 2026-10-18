@@ -3,6 +3,9 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const app = express();
 
+// Trust reverse proxy (Render load balancer) so secure cookies work properly over HTTPS
+app.set('trust proxy', 1);
+
 const allowedOrigins = [
   process.env.VITE_URL,
   'https://vrstockly.vercel.app',
