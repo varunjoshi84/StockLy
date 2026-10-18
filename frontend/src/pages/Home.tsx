@@ -93,15 +93,12 @@ export default function Home() {
       {/* Top Navbar */}
       <header className="bg-white sticky top-0 z-50 border-b border-[#dce6e2] shadow-sm shadow-[#102b35]/[.04]">
         <div className="max-w-7xl mx-auto px-5 sm:px-6 py-3.5 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-[#c5f36a] flex items-center justify-center shadow-sm">
-              <TrendingUp className="w-4.5 h-4.5 text-[#102b35]" strokeWidth={2.5} />
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-lg tracking-tight text-[#102b35]">Stockly<span className="text-[#00a96b]">.</span></span>
-
-            </div>
-          </div>
+          <Link to="/" className="flex items-center gap-2.5" aria-label="Stockly home">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#102b35] text-[#c5f36a]">
+              <TrendingUp size={19} strokeWidth={2.5} />
+            </span>
+            <span className="text-lg font-bold tracking-tight text-[#102b35]">Stockly<span className="text-[#00a96b]">.</span></span>
+          </Link>
 
           <div className="flex items-center gap-4">
           
